@@ -1,0 +1,8 @@
+## Mac FS
+.DS_Store
+
+## Xcode
+xcuserdata
+*.xcworkspacedata
+*.xccheckout
+
