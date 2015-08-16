@@ -87,6 +87,21 @@ static NSString *kAddRecipeSegueID = @"addRecipe";
 	}
 }
 
+#pragma mark - Refresh support
+
+- (IBAction)refresh:(id)sender
+{
+	[self.refreshControl beginRefreshing];
+	[self syncWithServer];
+}
+
+- (void)syncWithServer
+{
+	dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+		[self.refreshControl endRefreshing];
+		[self.tableView reloadData];
+	});
+}
 
 #pragma mark - Recipe support
 

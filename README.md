@@ -55,3 +55,8 @@ a CDTIncrementalStore and we changed the store type from `NSSQLiteStoreType` to 
 Note that we leave the default store as a sqlite store, so the application is using both a sqlite store and CDTIncrementalStore.
 We also changed the default store to be read-only, so all new recipes go to the user store.
 
+### Simple refresh control on Recipes TVC
+
+This change adds a refresh control to the Recipes TableViewController.
+This is preparing for the next update, which will use the refresh to drive a synchronization with a remote Cloudant datastore.
+
