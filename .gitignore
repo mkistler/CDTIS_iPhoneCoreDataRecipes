@@ -6,3 +6,7 @@ xcuserdata
 *.xcworkspacedata
 *.xccheckout
 
+## CocoaPods
+/Podfile.lock
+/Pods/
+

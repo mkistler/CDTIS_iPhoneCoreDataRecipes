@@ -50,6 +50,8 @@
 #import "RecipeListTableViewController.h"
 #import "Recipe.h"
 
+#import <CDTIncrementalStore/CDTIncrementalStore.h>
+
 @interface RecipesAppDelegate ()
 
 @property (nonatomic, strong) NSManagedObjectModel *managedObjectModel;
@@ -167,7 +169,7 @@
    if (![_persistentStoreCoordinator addPersistentStoreWithType:NSSQLiteStoreType
                                                   configuration:nil
                                                             URL:defaultStoreURL
-                                                        options:nil
+                                                        options:@{NSReadOnlyPersistentStoreOption:@YES}
                                                           error:&error]) {
 		/*
 		 Replace this implementation with code to handle the error appropriately.
@@ -184,8 +186,8 @@
     }
     
     // setup and add the user's store to our coordinator
-    NSURL *userStoreURL = [[self applicationDocumentsDirectory] URLByAppendingPathComponent:@"UserRecipes.sqlite"];
-    if (![_persistentStoreCoordinator addPersistentStoreWithType:NSSQLiteStoreType
+    NSURL *userStoreURL = [[self applicationDocumentsDirectory] URLByAppendingPathComponent:@"UserRecipes.cdtis"];
+    if (![_persistentStoreCoordinator addPersistentStoreWithType:[CDTIncrementalStore type]
                                                                      configuration:nil
                                                                                URL:userStoreURL
                                                                            options:nil
