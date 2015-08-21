@@ -1,10 +1,10 @@
 # CDTIS_iPhoneCoreDataRecipes
 
-This project demonstrates how to convert a 
+This project demonstrates how to convert a
 CoreData application to use [CDTIncrementalStore][cdtis].
 We use [Apple's iPhoneCoreDataRecipes][recipe] sample application.  The
 original code for the sample is the initial `git` checkin and
-can also be found in branch [apple/original](a66fba04d038469). 
+can also be found in branch [apple/original](a66fba04d038469).
 You can read the original [ReadMe.txt](ReadMe.txt).
 
 [cdtis]: https://github.com/jimix/CDTIncrementalStore "CDTIncrementalStore"
@@ -17,7 +17,7 @@ that automates and simplifies the process of using 3rd-party libraries.
 You should install CocoaPods using the [guide on their site][cpinstall].
 
 Once CocoaPods is installed, you can install all the required dependencies (pods)
-with the command 
+with the command
 
 ```bash
 $ pod install
@@ -104,6 +104,53 @@ Just open the userrecipes database and you should see a set of documents.
 If you did not add any recipes before replicating, the remote database
 will contain just the metadata documents used by CDTIncrementalStore to
 describe the CoreData object model.
+
+# Next Step: A true cloud app
+
+The focus to this point has been to demonstrate how a CoreData app originally designed to hold all its data locally can be transformed to store its data in
+a remote Cloudant database.
+With this accomplished, we can now take the next step of converting to a full-on
+cloud application.
+
+For example, in a true cloud application, the natural way to provide an initial set of recipes is to pre-populate these into user's cloud data base when it is first created.
+This approach eliminates the need to distribute these initial recipes in the app bundle, making the app download smaller and allowing the app developer to deliver
+a larger and potentially more dynamic set of initial recipes.
+It also simplifies the application logic since all recipes are now consolidated into
+a single persistent store.
+
+The `cdtis/nextstep` branch illustrates how to make this change to our sample application.  In the app itself, the initialization step for the CoreData stack has
+been changed to use a single persistent store ('Recipes.cdtis') to hold the recipes.
+There is also a small change to `ReplOperation.m` to target the `recipes` database
+in Cloudant.
+
+The creation and population of the user's initial database in Cloudant is best done
+by an application backend running somewhere in the cloud, but building a full backend
+is beyond the scope of this example.
+Instead, we have provided an example Node.js app that will create the database, create an API key and give it the appropriate permissions, and then populate the DB with the
+initial set of recipes.
+This example script is called `createDb.js` and is located in the REST directory, along with the `recipes.json` file that contains the initial set of recipes.
+Also included in the REST directory is the `getRecipes.js` script that was used to create the `recipes.json` file from an existing Cloudant database.
+
+To see how this works, update the `createDb.js` script with our Cloudant account
+credentails.
+Make sure you delete any existing `recipes` datastore in your Cloudant account, and
+then run it as follows:
+
+```
+node createDb.js
+```
+If successful, `createDb.js` will display the details of the database it created:
+
+````
+createDb completed.
+hostname = mkistler.cloudant.com
+dbname = recipes
+key = entassuenthureamezempled
+password = edY3Bk1G2d3geJgkqbUwOn1h
+
+````
+
+Now update `ReplOperation.m` with these credentials and run the app.  Initially the app will display an empty table of recipes, but pulling down on the tableview will kick of the synch operation which pulls down the initial set of recipes from the newly created Cloudant database.
 
 # Summary of changes
 
