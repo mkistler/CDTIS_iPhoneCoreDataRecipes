@@ -139,55 +139,65 @@
  Returns the persistent store coordinator for the application.
  If the coordinator doesn't already exist, it is created and the application's store added to it.
  */
+/**
+ The original Recipes app created two separate SQLite DBs, one of which was pre-populated with the
+ sample recipes and the other seemingly intended to hold user recipes.  However, the user recipes DB
+ was never actually used -- new recipes were stored into the same DB as the sample recipes.
+ Moreover, the Recipes data model is not amenable to the use of multiple persistent stores since
+ CoreData does not support cross-store relationships. For these reasons, we removed the code to create
+ the user DB and return a persistentStoreCoodinator for just the pre-populated datastore.
+ */
 - (NSPersistentStoreCoordinator *)persistentStoreCoordinator {
 	
     if (_persistentStoreCoordinator != nil) {
         return _persistentStoreCoordinator;
     }
 		
-	// copy the default store (with a pre-populated data) into our Documents folder
-    //
-    NSString *documentsStorePath =
+    NSString *recipesStorePath =
         [[[self applicationDocumentsDirectory] path] stringByAppendingPathComponent:@"Recipes.sqlite"];
-	
-    // if the expected store doesn't exist, copy the default store
-	if (![[NSFileManager defaultManager] fileExistsAtPath:documentsStorePath]) {
+	NSURL *recipesStoreURL = [NSURL fileURLWithPath:recipesStorePath];
+
+    // If the recipes store doesn't exist, create it by migrating the default store into it
+	if (![[NSFileManager defaultManager] fileExistsAtPath:recipesStorePath]) {
 		NSString *defaultStorePath = [[NSBundle mainBundle] pathForResource:@"Recipes" ofType:@"sqlite"];
-		if (defaultStorePath) {
-			[[NSFileManager defaultManager] copyItemAtPath:defaultStorePath toPath:documentsStorePath error:NULL];
-		}
-	}
+        NSURL *defaultStoreURL = [NSURL fileURLWithPath:defaultStorePath];
+
+        // Create an NSPersistentStoreCoordinator for migrating default store to recipes store.
+
+        NSPersistentStoreCoordinator *migrationPSC = [[NSPersistentStoreCoordinator alloc] initWithManagedObjectModel:self.managedObjectModel];
+
+        NSError *error;
+        NSPersistentStore *defaultStore =
+        [migrationPSC addPersistentStoreWithType:NSSQLiteStoreType
+                                   configuration:nil
+                                             URL:defaultStoreURL
+                                         options:nil
+                                           error:&error];
+        if (!defaultStore) {
+            NSLog(@"Unresolved error %@, %@", error, [error userInfo]);
+            abort();
+        }
+
+        if (![migrationPSC migratePersistentStore:defaultStore
+                                            toURL:recipesStoreURL
+                                          options:nil
+                                         withType:NSSQLiteStoreType
+                                            error:&error]) {
+            NSLog(@"Unresolved error %@, %@", error, [error userInfo]);
+            abort();
+        }
+    }
+
+    // Create a new NSPersistentStoreCoordinator for the recipes store.
 
     _persistentStoreCoordinator =
         [[NSPersistentStoreCoordinator alloc] initWithManagedObjectModel:[self managedObjectModel]];
     
-    // add the default store to our coordinator
+    // add the recipes store to our coordinator
     NSError *error;
-    NSURL *defaultStoreURL = [NSURL fileURLWithPath:documentsStorePath];
-   if (![_persistentStoreCoordinator addPersistentStoreWithType:NSSQLiteStoreType
-                                                  configuration:nil
-                                                            URL:defaultStoreURL
-                                                        options:nil
-                                                          error:&error]) {
-		/*
-		 Replace this implementation with code to handle the error appropriately.
-		 
-		 abort() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development. If it is not possible to recover from the error, display an alert panel that instructs the user to quit the application by pressing the Home button.
-		 
-		 Typical reasons for an error here include:
-		 * The persistent store is not accessible
-		 * The schema for the persistent store is incompatible with current managed object model
-		 Check the error message to determine what the actual problem was.
-		 */
-		NSLog(@"Unresolved error %@, %@", error, [error userInfo]);
-		abort();
-    }
-    
-    // setup and add the user's store to our coordinator
-    NSURL *userStoreURL = [[self applicationDocumentsDirectory] URLByAppendingPathComponent:@"UserRecipes.sqlite"];
     if (![_persistentStoreCoordinator addPersistentStoreWithType:NSSQLiteStoreType
                                                                      configuration:nil
-                                                                               URL:userStoreURL
+                                                                               URL:recipesStoreURL
                                                                            options:nil
                                                                              error:&error]) {
 		/*
