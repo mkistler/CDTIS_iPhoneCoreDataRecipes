@@ -50,6 +50,8 @@
 #import "RecipeListTableViewController.h"
 #import "Recipe.h"
 
+#import <CDTIncrementalStore/CDTIncrementalStore.h>
+
 @interface RecipesAppDelegate ()
 
 @property (nonatomic, strong) NSManagedObjectModel *managedObjectModel;
@@ -154,7 +156,7 @@
     }
 		
     NSString *recipesStorePath =
-        [[[self applicationDocumentsDirectory] path] stringByAppendingPathComponent:@"Recipes.sqlite"];
+        [[[self applicationDocumentsDirectory] path] stringByAppendingPathComponent:@"Recipes.cdtis"];
 	NSURL *recipesStoreURL = [NSURL fileURLWithPath:recipesStorePath];
 
     // If the recipes store doesn't exist, create it by migrating the default store into it
@@ -181,7 +183,7 @@
         if (![migrationPSC migratePersistentStore:defaultStore
                                             toURL:recipesStoreURL
                                           options:nil
-                                         withType:NSSQLiteStoreType
+                                         withType:[CDTIncrementalStore type]
                                             error:&error]) {
             NSLog(@"Unresolved error %@, %@", error, [error userInfo]);
             abort();
@@ -195,7 +197,7 @@
     
     // add the recipes store to our coordinator
     NSError *error;
-    if (![_persistentStoreCoordinator addPersistentStoreWithType:NSSQLiteStoreType
+    if (![_persistentStoreCoordinator addPersistentStoreWithType:[CDTIncrementalStore type]
                                                                      configuration:nil
                                                                                URL:recipesStoreURL
                                                                            options:nil
