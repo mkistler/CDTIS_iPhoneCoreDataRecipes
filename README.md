@@ -57,3 +57,8 @@ From this point on we must use the Recipes.xcworkspace to build and run the app.
 Once the dependencies are integrated, the only change required in the app is to
 change the store type for the user store from `NSSQLiteStoreType` to
 `[CDTIncrementalStore type]`.
+
+### Simple refresh control on Recipes TVC
+
+This change adds a refresh control to the Recipes TableViewController.
+This is preparing for the next update, which will use the refresh to drive a synchronization with a remote Cloudant datastore.
