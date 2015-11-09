@@ -35,6 +35,7 @@
 		53506710188075A9003726E2 /* Storyboard.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 5350670E188075A9003726E2 /* Storyboard.storyboard */; };
 		53757D0C18AC306A0080EA8D /* Media.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 53757D0B18AC306A0080EA8D /* Media.xcassets */; };
 		67C2B9B9B941204F0FB6DF85 /* libPods.a in Frameworks */ = {isa = PBXBuildFile; fileRef = BFEF0067757F00EE7275F6F5 /* libPods.a */; };
+		CA24DC791B8040E100554595 /* ReplOperation.m in Sources */ = {isa = PBXBuildFile; fileRef = CA24DC781B8040E100554595 /* ReplOperation.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -89,6 +90,8 @@
 		966D0AFA0DF4CB4D0054F11F /* IngredientDetailViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IngredientDetailViewController.h; sourceTree = "<group>"; };
 		966D0AFB0DF4CB4D0054F11F /* IngredientDetailViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = IngredientDetailViewController.m; sourceTree = "<group>"; };
 		BFEF0067757F00EE7275F6F5 /* libPods.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libPods.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		CA24DC771B8040E100554595 /* ReplOperation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ReplOperation.h; path = Classes/ReplOperation.h; sourceTree = "<group>"; };
+		CA24DC781B8040E100554595 /* ReplOperation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ReplOperation.m; path = Classes/ReplOperation.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -190,6 +193,7 @@
 			children = (
 				28CB440A0DF7129800C7BCF9 /* ReadMe.txt */,
 				286DDA180DE761A2005EF016 /* Application */,
+				CA24DC7A1B8040EF00554595 /* DB Operations */,
 				28FCBE8F0DE69AD4007A15C7 /* Model and Model Classes */,
 				080E96DDFE201D6D7F000001 /* Recipe View Controllers */,
 				28E87BED0DF21E0D00EE412E /* Converter View Controllers */,
@@ -244,6 +248,15 @@
 				28963B440DFC7F5F005CC955 /* TemperatureCell.m */,
 			);
 			name = "Table Cells";
+			sourceTree = "<group>";
+		};
+		CA24DC7A1B8040EF00554595 /* DB Operations */ = {
+			isa = PBXGroup;
+			children = (
+				CA24DC771B8040E100554595 /* ReplOperation.h */,
+				CA24DC781B8040E100554595 /* ReplOperation.m */,
+			);
+			name = "DB Operations";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -354,6 +367,7 @@
 				28FCBF0C0DE6A6C6007A15C7 /* RecipeListTableViewController.m in Sources */,
 				283EA3640DEE388300DBD352 /* RecipeTableViewCell.m in Sources */,
 				184FEA3E0DEF6D4D00887625 /* WeightConverterViewController.m in Sources */,
+				CA24DC791B8040E100554595 /* ReplOperation.m in Sources */,
 				184FEA3F0DEF6D4D00887625 /* TemperatureConverterViewController.m in Sources */,
 				28963B450DFC7F5F005CC955 /* TemperatureCell.m in Sources */,
 				280CEB6C0E38093400021185 /* ImperialPickerController.m in Sources */,

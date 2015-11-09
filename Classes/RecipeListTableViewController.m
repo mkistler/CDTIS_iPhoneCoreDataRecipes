@@ -51,9 +51,12 @@
 #import "RecipeDetailViewController.h"
 #import "Recipe.h"
 #import "RecipeTableViewCell.h"
+#import "ReplOperation.h"
 
 @interface RecipeListTableViewController ()
 @property (nonatomic, strong) NSFetchedResultsController *fetchedResultsController;
+@property (nonatomic, strong) NSOperationQueue *dbOperationQueue;
+
 @end
 
 @implementation RecipeListTableViewController
@@ -68,7 +71,9 @@ static NSString *kAddRecipeSegueID = @"addRecipe";
 - (void)viewDidLoad {
     
     [super viewDidLoad];
-    
+
+	self.dbOperationQueue = [[NSOperationQueue alloc] init];
+
     // add the table's edit button to the left side of the nav bar
     self.navigationItem.leftBarButtonItem = self.editButtonItem;
 
@@ -97,10 +102,37 @@ static NSString *kAddRecipeSegueID = @"addRecipe";
 
 - (void)syncWithServer
 {
-	dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+	ReplOperation *pullOp = [ReplOperation operationWithType:ReplOperationPull managedObjectContext:self.managedObjectContext];
+
+	/* Make sure credientials are set */
+	if (pullOp.remoteURL == nil) {
 		[self.refreshControl endRefreshing];
-		[self.tableView reloadData];
-	});
+
+		/* Alert user that credentials must be set */
+		UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Remote Sync Disabled" message:@"Remote sync is disabled because the remote DB credentials are not set.  See the README for information on how to obtain and set these credentials." preferredStyle:UIAlertControllerStyleAlert];
+		[alert addAction:[UIAlertAction actionWithTitle:@"Dismiss" style:UIAlertActionStyleDefault handler:nil]];
+		[self presentViewController:alert animated:NO completion:nil];
+
+		return;
+	}
+
+	ReplOperation *pushOp = [ReplOperation operationWithType:ReplOperationPush managedObjectContext:self.managedObjectContext];
+	[pushOp addDependency:pullOp];
+
+	NSOperation *finishOp = [NSBlockOperation blockOperationWithBlock:^{
+		dispatch_async(dispatch_get_main_queue(), ^{
+			[self.refreshControl endRefreshing];
+			[NSFetchedResultsController deleteCacheWithName:[self.fetchedResultsController cacheName]];
+			[self.fetchedResultsController performFetch:nil];
+			[self.tableView reloadData];
+		});
+
+	}];
+	[finishOp addDependency:pushOp];
+
+	[self.dbOperationQueue addOperation:pullOp];
+	[self.dbOperationQueue addOperation:pushOp];
+	[self.dbOperationQueue addOperation:finishOp];
 }
 
 #pragma mark - Recipe support
