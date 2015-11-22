@@ -47,7 +47,7 @@ obtained from an application backend running in the cloud.
 
 ### Creating a New Database
 
-You can sign up for a [Cloudant] service at their site. Once you have
+You can sign up for a [Cloudant] account at their site. Once you have
 registered and have launched into the dashboard, you will be given the
 opportunity to add a new database.
 Once you are at the dashboard, you can:
@@ -102,6 +102,14 @@ Just open the recipes database and you should see a set of documents.
 If you did not add any recipes before replicating, the remote database
 should contain 51 documents.
 
+# Accessing recipes from multiple devices
+
+With the recipes stored in the remote Cloudant database, you can now access
+these recipes -- both read and update -- from multiple devices.
+Changes made on one device can be synchronized with the remote DB,
+and will then be shown on other devices the next time the device does
+a pull or sync with the remote DB.
+
 # Summary of changes
 
 The git log shows all changes made to convert the original sample app using CoreData
@@ -130,7 +138,7 @@ change the store type for the user store from `NSSQLiteStoreType` to
 This change adds a refresh control to the Recipes TableViewController.
 This is preparing for the next update, which will use the refresh to drive a synchronization with a remote Cloudant datastore.
 
-### Refresh performs sync with Remote DB
+### Refresh performs sync with remote DB
 
 This change fills out the refresh control to perform a sync with a remote database in Cloudant.
 The location and credentials for the remote DB are stored in the app
@@ -138,3 +146,11 @@ as described above.
 The sync is performed with a pull replication followed by a push replication.
 These are implemented in NSOperations to make it easy to schedule and chain them.
 After the DB operations finish, a final operation is run to bring the data in the view controller up-to-date.
+
+### Only load samples if remote DB is empty
+
+To complete the conversion of the app to a true cloud-based recipe store,
+the app must first load the receipes from the remote DB and only
+when finding that empty should it load the sample recipes into the DB.
+This avoids placing multiple copies of the sample recipes in the DB when
+the app is used on multiple devices.

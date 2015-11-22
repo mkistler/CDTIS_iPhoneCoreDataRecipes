@@ -50,5 +50,7 @@
 
 @property (nonatomic, strong) UIWindow *window;
 
+- (void)migrateSampleRecipesToLocalDB;
+
 @end
 

@@ -52,6 +52,7 @@
 #import "Recipe.h"
 #import "RecipeTableViewCell.h"
 #import "ReplOperation.h"
+#import "RecipesAppDelegate.h"
 
 @interface RecipeListTableViewController ()
 @property (nonatomic, strong) NSFetchedResultsController *fetchedResultsController;
@@ -90,6 +91,36 @@ static NSString *kAddRecipeSegueID = @"addRecipe";
 		NSLog(@"Unresolved error %@, %@", error, [error userInfo]);
 		abort();
 	}
+
+	[self populateLocalDB];
+}
+
+#pragma mark - populate Local DB
+
+- (void)populateLocalDB
+{
+	if ([[self.fetchedResultsController fetchedObjects] count] == 0) {
+
+		ReplOperation *pullOp = [ReplOperation operationWithType:ReplOperationPull managedObjectContext:self.managedObjectContext];
+
+		NSOperation *finishOp = [NSBlockOperation blockOperationWithBlock:^{
+			dispatch_async(dispatch_get_main_queue(), ^{
+				[self reloadTable];
+				if ([[self.fetchedResultsController fetchedObjects] count] == 0) {
+					RecipesAppDelegate *appDelegate = (RecipesAppDelegate *)[[UIApplication sharedApplication] delegate];
+					[appDelegate migrateSampleRecipesToLocalDB];
+					[self reloadTable];
+				}
+			});
+		}];
+
+		if (pullOp.remoteURL != nil) {
+			[finishOp addDependency:pullOp];
+			[self.dbOperationQueue addOperation:pullOp];
+		}
+
+		[self.dbOperationQueue addOperation:finishOp];
+	}
 }
 
 #pragma mark - Refresh support
@@ -98,6 +129,13 @@ static NSString *kAddRecipeSegueID = @"addRecipe";
 {
 	[self.refreshControl beginRefreshing];
 	[self syncWithServer];
+}
+
+- (void)reloadTable
+{
+	[NSFetchedResultsController deleteCacheWithName:[self.fetchedResultsController cacheName]];
+	[self.fetchedResultsController performFetch:nil];
+	[self.tableView reloadData];
 }
 
 - (void)syncWithServer
@@ -121,12 +159,9 @@ static NSString *kAddRecipeSegueID = @"addRecipe";
 
 	NSOperation *finishOp = [NSBlockOperation blockOperationWithBlock:^{
 		dispatch_async(dispatch_get_main_queue(), ^{
+			[self reloadTable];
 			[self.refreshControl endRefreshing];
-			[NSFetchedResultsController deleteCacheWithName:[self.fetchedResultsController cacheName]];
-			[self.fetchedResultsController performFetch:nil];
-			[self.tableView reloadData];
 		});
-
 	}];
 	[finishOp addDependency:pushOp];
 

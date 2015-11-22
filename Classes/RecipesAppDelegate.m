@@ -159,37 +159,6 @@
         [[[self applicationDocumentsDirectory] path] stringByAppendingPathComponent:@"Recipes.cdtis"];
 	NSURL *recipesStoreURL = [NSURL fileURLWithPath:recipesStorePath];
 
-    // If the recipes store doesn't exist, create it by migrating the default store into it
-	if (![[NSFileManager defaultManager] fileExistsAtPath:recipesStorePath]) {
-		NSString *defaultStorePath = [[NSBundle mainBundle] pathForResource:@"Recipes" ofType:@"sqlite"];
-        NSURL *defaultStoreURL = [NSURL fileURLWithPath:defaultStorePath];
-
-        // Create an NSPersistentStoreCoordinator for migrating default store to recipes store.
-
-        NSPersistentStoreCoordinator *migrationPSC = [[NSPersistentStoreCoordinator alloc] initWithManagedObjectModel:self.managedObjectModel];
-
-        NSError *error;
-        NSPersistentStore *defaultStore =
-        [migrationPSC addPersistentStoreWithType:NSSQLiteStoreType
-                                   configuration:nil
-                                             URL:defaultStoreURL
-                                         options:nil
-                                           error:&error];
-        if (!defaultStore) {
-            NSLog(@"Unresolved error %@, %@", error, [error userInfo]);
-            abort();
-        }
-
-        if (![migrationPSC migratePersistentStore:defaultStore
-                                            toURL:recipesStoreURL
-                                          options:nil
-                                         withType:[CDTIncrementalStore type]
-                                            error:&error]) {
-            NSLog(@"Unresolved error %@, %@", error, [error userInfo]);
-            abort();
-        }
-    }
-
     // Create a new NSPersistentStoreCoordinator for the recipes store.
 
     _persistentStoreCoordinator =
@@ -217,6 +186,41 @@
     }
 		
     return _persistentStoreCoordinator;
+}
+
+- (void)migrateSampleRecipesToLocalDB
+{
+	NSArray *stores = [self.managedObjectContext.persistentStoreCoordinator persistentStores];
+	CDTIncrementalStore *cdtis = (CDTIncrementalStore *)[stores firstObject];
+	assert(cdtis != nil && [cdtis isKindOfClass:[CDTIncrementalStore class]]);
+	NSURL *recipesStoreURL = [cdtis URL];
+
+	NSString *defaultStorePath = [[NSBundle mainBundle] pathForResource:@"Recipes" ofType:@"sqlite"];
+	NSURL *defaultStoreURL = [NSURL fileURLWithPath:defaultStorePath];
+
+	// Create an NSPersistentStoreCoordinator for migrating default store to recipes store.
+
+	NSPersistentStoreCoordinator *migrationPSC = [[NSPersistentStoreCoordinator alloc] initWithManagedObjectModel:self.managedObjectModel];
+
+	NSError *error;
+	NSPersistentStore *defaultStore = [migrationPSC addPersistentStoreWithType:NSSQLiteStoreType
+																 configuration:nil
+																		   URL:defaultStoreURL
+																	   options:nil
+																		 error:&error];
+	if (!defaultStore) {
+		NSLog(@"Unresolved error %@, %@", error, [error userInfo]);
+		abort();
+	}
+
+	if (![migrationPSC migratePersistentStore:defaultStore
+										toURL:recipesStoreURL
+									  options:nil
+									 withType:[CDTIncrementalStore type]
+										error:&error]) {
+		NSLog(@"Unresolved error %@, %@", error, [error userInfo]);
+		abort();
+	}
 }
 
 @end
